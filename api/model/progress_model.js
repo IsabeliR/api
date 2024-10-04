@@ -3,7 +3,12 @@ const mongoose = require('mongoose');
 const progressSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'nome',
+    ref: 'User',
+    required: true
+  },
+  aulaId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Aula',
     required: true
   },
   progress: {
@@ -11,6 +16,10 @@ const progressSchema = new mongoose.Schema({
     required: true,
     min: 0,
     max: 100 // Progresso de 0 a 100%
+  },
+  cor: {
+    type: String,
+    required: true // Cor em formato hexadecimal
   },
   updatedAt: {
     type: Date,

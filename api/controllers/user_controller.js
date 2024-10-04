@@ -40,16 +40,16 @@ async function loginUser(req, res) {
     }
 
     console.log(`Usuário Senha: ${usuario.password}`);
-    console.log(`Senha enviada: ${senha}`)
+    console.log(`Senha enviada: ${senha}`);
     if (usuario.password === senha) {
       res.status(200).json({ message: "Login realizado com sucesso!" });
-    }else {
+    } else {
       res.status(401).json({ message: "Senha incorreta!" });
     }
   } catch (error) {
     res.status(500).json({ message: "Erro ao realizar o login!", error });
   }
-};
+}
 
 async function listUsers(req, res) {
   try {
@@ -103,7 +103,6 @@ async function updateUser(req, res) {
     res.status(500).json({ message: "Erro interno do servidor" });
   }
 }
-
 
 module.exports = {
   registerUser,
