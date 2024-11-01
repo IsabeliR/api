@@ -7,4 +7,3 @@ router.get('/find', productController.buscarProdutos);
 
 
 module.exports = router;
-
