@@ -1,20 +1,23 @@
-// index.js ou app.js
 const express = require('express');
 const cors = require('cors');
-const userRoutes = require('./api/routes/user_routes'); // Importa as rotas de usuário
-const uploadRoutes = require('./api/routes/upload_routes'); // Importa as rotas de upload
-const { connectDB } = require('./api/config/database');
+const userRoutes = require('./api/routes/user_routes');
+const uploadRoutes = require('./api/routes/upload_routes');
+const { connectDB } = require('./api/config/database')
+const ProductRoutes = require('./api/routes/materia_routes');
+const progressRoutes = require('./api/routes/progress_routes');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+}));
 app.use(express.json());
 
-// Conectando ao banco de dados
 connectDB();
 
-// Registrando as rotas
-app.use('/api/users', userRoutes); // A rota /upload-photo será acessível em /api/users/upload-photo
+app.use('/api/progress', progressRoutes);
+app.use('/api/products', ProductRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/upload', uploadRoutes);
 
 const PORT = process.env.PORT || 3000;

@@ -10,7 +10,8 @@ const produtosSchema = new mongoose.Schema({
     },
   },
   imagem: String,
+  videoUrl: String
 })
 
-const Produto = mongoose.model('produtos',produtosSchema);
+const Produto = mongoose.model('materias',produtosSchema);
 module.exports=Produto;

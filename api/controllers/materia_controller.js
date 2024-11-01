@@ -1,4 +1,4 @@
-const Produto = require('../model/product_model');
+const Produto = require('../model/materia_model');
 
 exports.createProduct = async(req,res)=>{
   try {

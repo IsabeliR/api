@@ -3,29 +3,29 @@ const mongoose = require('mongoose');
 const progressSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User',  // Referência ao modelo de usuário
     required: true
   },
-  aulaId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Aula',
+  disciplina: {
+    type: String,
     required: true
   },
-  progress: {
+  progresso: {
     type: Number,
     required: true,
     min: 0,
-    max: 100 // Progresso de 0 a 100%
+    max: 100  // Percentual de progresso entre 0 e 100
   },
   cor: {
     type: String,
-    required: true // Cor em formato hexadecimal
+    required: true  // Cor associada ao progresso
   },
   updatedAt: {
     type: Date,
-    default: Date.now // Armazena a data da última atualização
+    default: Date.now  // Data da última atualização
   }
 });
 
 const Progress = mongoose.model('Progress', progressSchema);
+
 module.exports = Progress;
