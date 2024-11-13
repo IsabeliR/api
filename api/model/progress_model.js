@@ -14,6 +14,10 @@ const progressSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  aula: {
+    type: String,
+    required: true
+  },
   progresso: {
     type: Number,
     required: true,
@@ -30,6 +34,6 @@ const progressSchema = new mongoose.Schema({
   }
 });
 
-const Progress = mongoose.model('Progress', progressSchema);
+const Progress = mongoose.model('progresses', progressSchema);
 
 module.exports = Progress;
