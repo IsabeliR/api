@@ -1,4 +1,6 @@
 const User = require("../model/user_model");
+const mongoose = require("mongoose");
+
 
 async function registerUser(req, res) {
   const { nome, email, password } = req.body;
@@ -41,8 +43,10 @@ async function loginUser(req, res) {
 
     console.log(`Usuário Senha: ${usuario.password}`);
     console.log(`Senha enviada: ${senha}`);
+
+    console.log('usuario: ', usuario);
     if (usuario.password === senha) {
-      res.status(200).json({ message: "Login realizado com sucesso!" });
+      res.status(200).json({ message: "Login realizado com sucesso!", usuario: usuario.nome, userId: usuario._id });
     } else {
       res.status(401).json({ message: "Senha incorreta!" });
     }

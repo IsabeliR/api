@@ -3,10 +3,14 @@ const mongoose = require('mongoose');
 const progressSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',  // Referência ao modelo de usuário
+    ref: 'User',  // Referência ao modelo User
     required: true
   },
   disciplina: {
+    type: String,
+    required: true
+  },
+  aulaId: {  // Novo campo para identificar a aula
     type: String,
     required: true
   },
@@ -29,4 +33,3 @@ const progressSchema = new mongoose.Schema({
 const Progress = mongoose.model('Progress', progressSchema);
 
 module.exports = Progress;
-
