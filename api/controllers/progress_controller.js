@@ -1,232 +1,112 @@
 const Progress = require("../model/progress_model");
 const User = require("../model/user_model");
-const mongoose = require("mongoose");
 
 // Inserir progresso de uma disciplina
 exports.inserirProgresso = async (req, res) => {
-    console.log("blablab", aula);
-  const { userId, disciplina, aulaId, aula, progresso, cor } = req.body;
+  const { userId, disciplina, aula, progresso = 10, cor = "#FF5733" } = req.body;
   try {
-    // Verificar se o usuário existe
     const usuario = await User.findById(userId);
-    if (!usuario) {
-      return res.status(404).json({ message: "Usuário não encontrado!" });
-    }
+    if (!usuario) return res.status(404).json({ message: "Usuário não encontrado!" });
 
-    // Verificar se o progresso já existe para evitar duplicação
-    const progressoExistente = await Progress.findOne({ aula, aulaId });
+    const progressoExistente = await Progress.findOne({ userId, aula });
     if (progressoExistente) {
-      return res
-        .status(200)
-        .json({
-          message: "Progresso já existe",
-          progresso: progressoExistente,
-        });
+      return res.status(200).json({ message: "Progresso já existe", progresso: progressoExistente });
     }
 
-    // Criar um novo progresso com início em 10%
-    const novoProgresso = new Progress({
-      userId,
-      aula,
-      aulaId,
-      disciplina,
-      progresso: progresso, // Inicia com 10% ao primeiro clique
-      cor: "#FF5733", // Cor padrão, pode ser personalizada
-    });
-
-    // Salvar o progresso no banco de dados
+    const novoProgresso = new Progress({ userId, aula, disciplina, progresso, cor });
     await novoProgresso.save();
-
-    res
-      .status(201)
-      .json({
-        message: "Progresso inserido com sucesso!",
-        progresso: novoProgresso,
-      });
+    res.status(201).json({ message: "Progresso inserido com sucesso!", progresso: novoProgresso });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao inserir progresso", error: error.message });
+    res.status(500).json({ message: "Erro ao inserir progresso", error: error.message });
   }
 };
 
-// Atualizar o progresso de uma aula específica dentro de uma disciplina para 100%
+// Atualizar progresso com incremento
+exports.atualizarProgresso = async (req, res) => {
+  const { userId, disciplina, aulaId, incremento = 10 } = req.body;
+  try {
+    const progresso = await Progress.findOne({ userId, disciplina, aulaId });
+    if (!progresso) return res.status(404).json({ message: "Progresso não encontrado!" });
+
+    progresso.progresso = Math.min(progresso.progresso + incremento, 100);
+    progresso.updatedAt = Date.now();
+    await progresso.save();
+
+    const progressosDisciplina = await Progress.find({ userId, disciplina });
+    const mediaProgresso = progressosDisciplina.reduce((sum, p) => sum + p.progresso, 0) / progressosDisciplina.length;
+    res.status(200).json({ message: "Progresso atualizado com sucesso!", mediaProgresso });
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao atualizar progresso", error: error.message });
+  }
+};
+
+// Atualizar progresso de uma aula para 100%
 exports.atualizarProgressoAula = async (req, res) => {
-  const { userId, disciplina, aulaId } = req.body;
+  const { userId, disciplina, aula } = req.body;
   try {
-    // Verifica se o userId foi enviado corretamente
-    if (!userId) {
-      return res.status(400).json({ message: "User ID não fornecido!" });
-    }
+    if (!userId || !aula) return res.status(400).json({ message: "User ID ou aula não fornecido!" });
 
-    console.log("Dados recebidos para atualizar progresso da aula:", req.body);
+    const progressoExistente = await Progress.findOne({ userId, disciplina, aula });
+    if (!progressoExistente) return res.status(404).json({ message: "Progresso da aula não encontrado!" });
 
-    // Verificar se o progresso da aula existe
-    const progressoExistente = await Progress.findOne({ aulaId });
-    if (!progressoExistente) {
-      console.log("Progresso da aula não encontrado.");
-      return res
-        .status(404)
-        .json({ message: "Progresso da aula não encontrado!" });
-    }
-
-    // Atualizar progresso da aula para 100%
     progressoExistente.progresso = 100;
-    progressoExistente.updatedAt = Date.now(); // Atualiza a data de modificação
-
-    // Salvar as alterações
+    progressoExistente.updatedAt = Date.now();
     await progressoExistente.save();
-    console.log("Progresso da aula atualizado com sucesso para 100%.");
 
-    res
-      .status(200)
-      .json({
-        message: "Progresso da aula atualizado para 100%!",
-        progresso: progressoExistente.progresso,
-      });
+    res.status(200).json({ message: "Progresso da aula atualizado para 100%!", progresso: progressoExistente });
   } catch (error) {
-    console.error("Erro ao atualizar progresso da aula:", error.message);
-    res
-      .status(500)
-      .json({
-        message: "Erro ao atualizar progresso da aula",
-        error: error.message,
-      });
-  }
-};
-
-// Função para adicionar o progresso, caso ainda não exista
-exports.inserirProgresso = async (req, res) => {
-  try {
-    const { userId, disciplina } = req.body;
-
-    // Verificar se o usuário existe
-    const usuario = await User.findById(userId);
-    if (!usuario) {
-      return res.status(404).json({ message: "Usuário não encontrado!" });
-    }
-
-    // Verificar se o progresso já existe
-    const progressoExistente = await Progress.findOne({ aula });
-    if (progressoExistente) {
-      return res
-        .status(200)
-        .json({
-          message: "Progresso já existe",
-          progresso: progressoExistente,
-        });
-    }
-
-    // Criar um novo progresso com início em 10%
-    const novoProgresso = new Progress({
-      userId,
-      disciplina,
-      progresso: 10, // Inicia com 10% no primeiro clique
-      cor: "#FF5733", // Cor padrão
-    });
-
-    // Salvar o progresso
-    await novoProgresso.save();
-
-    res
-      .status(201)
-      .json({
-        message: "Progresso inserido com sucesso!",
-        progresso: novoProgresso,
-      });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao inserir progresso", error: error.message });
+    res.status(500).json({ message: "Erro ao atualizar progresso da aula", error: error.message });
   }
 };
 
 // Buscar progresso por disciplina
 exports.buscarProgressoPorDisciplina = async (req, res) => {
+  const { disciplina } = req.body;
   try {
-    const { disciplina } = req.body;
+    if (!disciplina) return res.status(400).json({ message: "Disciplina não informada!" });
 
-    if (!disciplina) {
-      return res.status(400).json({ message: "Disciplina não informada!" });
-    }
-
-    // Buscar todos os progressos para a disciplina específica
     const progressos = await Progress.find({ disciplina });
-    console.log(progressos);
-
-    // Verificar se encontrou algum progresso
-    // if (progressos.length === 0) {
-    //   return res.status(404).json({ message: 'Nenhum progresso encontrado para essa disciplina!' });
-    // }
-
     res.status(200).json({ progressos });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao buscar progressos", error: error.message });
+    res.status(500).json({ message: "Erro ao buscar progressos", error: error.message });
   }
 };
 
-// Incrementar o progresso em 10%, até o máximo de 100%
-exports.atualizarProgresso = async (req, res) => {
-  try {
-    const { userId, disciplina } = req.body;
-
-    // Verificar se o progresso já existe para evitar duplicação
-    const progressoExistente = await Progress.findOne({ userId, disciplina });
-    if (!progressoExistente) {
-      return res.status(404).json({ message: "Progresso não encontrado!" });
-    }
-
-    // Incrementar o progresso em 10%, até o máximo de 100%
-    progressoExistente.progresso = Math.min(
-      progressoExistente.progresso + 10,
-      100,
-    );
-    progressoExistente.updatedAt = Date.now(); // Atualizar a data da última modificação
-
-    // Salvar as alterações
-    await progressoExistente.save();
-
-    res
-      .status(200)
-      .json({
-        message: "Progresso atualizado com sucesso!",
-        progresso: progressoExistente.progresso,
-      });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao atualizar progresso", error: error.message });
-  }
-};
-// Buscar progresso de todas as disciplinas para um usuário
+// Buscar progresso por usuário
 exports.buscarProgressoPorUsuario = async (req, res) => {
+  const { userId } = req.body;
   try {
-    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ message: "User ID não fornecido!" });
 
-    // Verificar se o userId foi enviado corretamente
-    if (!userId) {
-      return res.status(400).json({ message: "User ID não fornecido!" });
-    }
-
-    const objectIdUser = new mongoose.Types.ObjectId(userId);
-
-    // Buscar todos os progressos para o usuário específico
-    const progressos = await Progress.find({ userId: objectIdUser });
-
-    // Verificar se encontrou algum progresso
-    // if (progressos.length === 0) {
-    //   return res.status(404).json({ message: 'Nenhum progresso encontrado para esse usuário!' });
-    // }
-
+    const progressos = await Progress.find({ userId });
     res.status(200).json({ progressos });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Erro ao buscar progressos do usuário",
-        error: error.message,
-      });
+    res.status(500).json({ message: "Erro ao buscar progressos do usuário", error: error.message });
+  }
+};
+// Buscar progresso de uma disciplina por usuário autenticado (com JWT)
+exports.buscarProgresso = async (req, res) => {
+  const { disciplina } = req.query; // Use query para GET
+  if (!disciplina) {
+    return res.status(400).json({ message: 'Disciplina não informada!' });
+  }
+  try {
+    // Encontrar o usuário pela autenticação (JWT)
+    const user = await User.findById(req.userId); // Aqui, req.userId é assumido como o ID do usuário do JWT
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado!' });
+    }
+    // Buscar o progresso da disciplina
+    const disciplinaEncontrada = user.progresso.find(d => d.nome === disciplina);
+
+    if (!disciplinaEncontrada) {
+      return res.status(404).json({ message: 'Disciplina não encontrada no progresso!' });
+    }
+
+    // Retornar as aulas e seus progressos
+    return res.json(disciplinaEncontrada.aulas);
+  } catch (error) {
+    console.error('Erro ao buscar progresso:', error);
+    return res.status(500).json({ message: 'Erro no servidor!' });
   }
 };
