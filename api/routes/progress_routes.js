@@ -8,8 +8,8 @@ router.post('/inserir', progressController.inserirProgresso);
 router.put('/atualizar', progressController.atualizarProgresso);
 // Rota para atualizar o progresso de uma aula específica
 router.post('/atualizarAula', progressController.atualizarProgressoAula);
-router.get('/buscar', progressController.buscarProgressoPorDisciplina);
-router.get('/buscarUser', progressController.buscarProgressoPorUsuario);
+router.post('/buscar', progressController.buscarProgressoPorDisciplina);
+router.post('/buscarUser', progressController.buscarProgressoPorUsuario);
 router.get('/buscarProgresso', progressController.buscarProgresso);
 
 module.exports = router;
