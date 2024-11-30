@@ -46,11 +46,17 @@ async function loginUser(req, res) {
 
     console.log('usuario: ', usuario);
     if (usuario.password === senha) {
-      res.status(200).json({ message: "Login realizado com sucesso!", usuario: usuario.nome, userId: usuario._id });
+      console.log('eieiei');
+      res.status(200).json({ message: "Login realizado com sucesso!", usuario: {
+        nome: usuario.nome,
+        email: usuario.email,
+        avatar: usuario.profilePhoto,
+      }, userId: usuario._id });
     } else {
       res.status(401).json({ message: "Senha incorreta!" });
     }
   } catch (error) {
+    console.log('bababou', error);
     res.status(500).json({ message: "Erro ao realizar o login!", error });
   }
 }
@@ -64,6 +70,7 @@ async function listUsers(req, res) {
     res.status(500).send("Erro interno do servidor");
   }
 }
+
 
 async function deleteUser(req, res) {
   const { userId } = req.params; // Pegando o ID do usuário a ser deletado
@@ -106,6 +113,50 @@ async function updateUser(req, res) {
     console.error("Erro ao atualizar usuário:", error);
     res.status(500).json({ message: "Erro interno do servidor" });
   }
+};
+// Função para atualizar a foto de perfil
+async function updateProfilePhoto(req, res) {
+  console.log("Corpo da requisição:", req.body);
+  const { userId, profilePhoto } = req.body; // Pegamos o ID do usuário e o novo avatar
+  // Verificar se o userId e a foto foram fornecidos
+  if (!userId || !profilePhoto) {
+    return res.status(400).json({ message: "ID do usuário e foto são obrigatórios!" });
+  }
+  try {
+    // Busca e atualiza o usuário pelo ID
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { profilePhoto }, // Atualiza o campo profilePhoto com o novo avatar
+      { new: true } // Retorna o documento atualizado
+    );
+
+    // Se o usuário não for encontrado
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Usuário não encontrado!" });
+    }
+    // Resposta de sucesso
+    res.status(200).json({
+      message: "Foto de perfil atualizada com sucesso!",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar a foto de perfil:", error);
+    res.status(500).json({ message: "Erro ao atualizar a foto de perfil", error });
+  }
+};
+
+async function getAvatarUsuario(req, res) {
+  const { userId } = req.body;
+
+  const usuario = await User.findById(userId);
+  if(!usuario) {
+    return res.status(404).json({ message: "Usuário não encontrado!" });
+  }
+
+  return res.status(200).json({
+    message: "Avatar do usuário encontrado!",
+    avatar: usuario.profilePhoto,
+  });
 }
 
 module.exports = {
@@ -114,4 +165,6 @@ module.exports = {
   loginUser,
   deleteUser,
   updateUser,
+  updateProfilePhoto,
+  getAvatarUsuario
 };

@@ -42,22 +42,64 @@ exports.atualizarProgresso = async (req, res) => {
 
 // Atualizar progresso de uma aula para 100%
 exports.atualizarProgressoAula = async (req, res) => {
-  const { userId, disciplina, aula } = req.body;
+  const { userId, disciplina, aulaId, aula, cor = "#FF5733" } = req.body;
+
+  if (!userId || !disciplina || !aulaId || !aula) {
+    return res.status(400).json({ message: "Campos obrigatórios não fornecidos!" });
+  }
+
   try {
-    if (!userId || !aula) return res.status(400).json({ message: "User ID ou aula não fornecido!" });
+    // Encontrar o usuário
+    const usuario = await User.findById(userId);
+    if (!usuario) {
+      return res.status(404).json({ message: "Usuário não encontrado!" });
+    }
 
-    const progressoExistente = await Progress.findOne({ userId, disciplina, aula });
-    if (!progressoExistente) return res.status(404).json({ message: "Progresso da aula não encontrado!" });
+    console.log(usuario)
 
-    progressoExistente.progresso = 100;
-    progressoExistente.updatedAt = Date.now();
-    await progressoExistente.save();
+    // Verificar se já existe progresso para a disciplina e aulaId
+    let progressoAtualizado = false;
 
-    res.status(200).json({ message: "Progresso da aula atualizado para 100%!", progresso: progressoExistente });
+    usuario.progresso.forEach(item => {
+      if (item.disciplina === disciplina) {
+        // Percorrer os tópicos para encontrar o progresso específico
+        item.topicos.forEach(topico => {
+          if (topico.aulaId === aulaId) {
+            topico.progresso = 100; // Atualizar progresso
+            topico.aula = aula;     // Atualizar nome da aula, se necessário
+            topico.cor = cor;       // Atualizar cor, se fornecido
+            progressoAtualizado = true;
+          }
+        });
+
+        // Se progresso não foi encontrado, adicionar novo tópico
+        if (!progressoAtualizado) {
+          item.topicos.push({
+            aulaId,
+            aula,
+            cor,
+            progresso: 100,
+            updatedAt: Date.now()
+          });
+        }
+      }
+    });
+
+    // Salvar alterações no usuário
+    await usuario.save();
+
+    res.status(200).json({
+      message: "Progresso atualizado com sucesso!",
+      progresso: usuario.progresso
+    });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao atualizar progresso da aula", error: error.message });
+    res.status(500).json({
+      message: "Erro ao atualizar o progresso",
+      error: error.message
+    });
   }
 };
+
 
 // Buscar progresso por disciplina
 exports.buscarProgressoPorDisciplina = async (req, res) => {

@@ -7,6 +7,8 @@ router.get('/buscar', userController.listUsers);
 router.post('/register', userController.registerUser);
 router.post('/update', userController.updateUser);
 router.post('/delete', userController.deleteUser);
+router.post('/upload-photo', userController.updateProfilePhoto);
+router.post('/avatar-usuario', userController.getAvatarUsuario)
 
 
 module.exports = router;

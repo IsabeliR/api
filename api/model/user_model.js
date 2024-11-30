@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+  const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   nome: {
@@ -14,6 +14,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     },
+  progresso: [
+    {
+      disciplina: String,
+      topicos: [
+        {
+          aulaId: String,
+          aula: String,
+          progresso: Number,
+          cor: String
+        }
+      ]
+    }
+  ],
   profilePhoto: {
     type: String,
     default: null
