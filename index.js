@@ -7,11 +7,11 @@ const progressRoutes = require('./api/routes/progress_routes');
 const chatRoutes = require('./api/routes/chat_routes');
 
 const app = express();
-
 app.use(cors({
   origin: '*',
 }));
 app.use(express.json());
+
 
 connectDB();
 

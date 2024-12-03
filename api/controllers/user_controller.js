@@ -73,22 +73,27 @@ async function listUsers(req, res) {
 
 
 async function deleteUser(req, res) {
-  const { userId } = req.params; // Pegando o ID do usuário a ser deletado
+  const { userId } = req.body; // Pegando o ID do usuário a ser deletado do corpo da requisição
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "ID de usuário inválido!" });
+  }
+
   try {
-    const user = await User.findById(userId);
+    // Encontra e deleta o usuário pelo ID
+    const user = await User.findByIdAndDelete(userId);
 
     if (!user) {
       return res.status(404).json({ message: "Usuário não encontrado!" });
     }
 
-    await user.remove();
-
     res.status(200).json({ message: "Usuário excluído com sucesso!" });
   } catch (error) {
     console.error("Erro ao excluir usuário:", error);
-    res.status(500).json({ message: "Erro interno do servidor" });
+    res.status(500).json({ message: "Erro interno do servidor", error });
   }
 }
+
 async function updateUser(req, res) {
   const { userId } = req.params;
   const { email, senha } = req.body; // Pegando os novos valores enviados na requisição
@@ -102,6 +107,7 @@ async function updateUser(req, res) {
     if (!user) {
       return res.status(404).json({ message: "Usuário não encontrado!" });
     }
+
     // Atualizar o email e/ou a senha, se fornecidos
     if (email) user.email = email;
     if (senha) user.password = senha;
@@ -114,6 +120,7 @@ async function updateUser(req, res) {
     res.status(500).json({ message: "Erro interno do servidor" });
   }
 };
+
 // Função para atualizar a foto de perfil
 async function updateProfilePhoto(req, res) {
   console.log("Corpo da requisição:", req.body);
@@ -157,7 +164,29 @@ async function getAvatarUsuario(req, res) {
     message: "Avatar do usuário encontrado!",
     avatar: usuario.profilePhoto,
   });
-}
+};
+const getUserName = async (req, res) => {
+  const { userId } = req.body; // Pega o userId da requisição
+
+  if (!userId) {
+    return res.status(400).json({ message: "userId é necessário" });
+  }
+
+  try {
+    // Aqui você já deve ter algum método para buscar o usuário no banco
+    const user = await User.findById(userId); // Ajuste conforme seu modelo
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    // Retorna apenas o nome do usuário
+    return res.status(200).json({ nome: user.nome });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Erro ao buscar nome do usuário" });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -166,5 +195,6 @@ module.exports = {
   deleteUser,
   updateUser,
   updateProfilePhoto,
-  getAvatarUsuario
+  getAvatarUsuario,
+  getUserName
 };
